@@ -1,12 +1,4 @@
-[![Build Status](https://travis-ci.org/micromata/dave.svg?branch=master)](https://travis-ci.org/micromata/dave)
-[![Go Report](https://goreportcard.com/badge/github.com/micromata/dave)](https://goreportcard.com/report/github.com/micromata/dave)
-
 # dave - The simple WebDAV server
-
-## Sorry, this project is unmaintained 😢
-
-Thanks to all contributors for your incredible work! 
-
 
 ## Introduction
 
@@ -148,8 +140,8 @@ User management in _dave_ is very simple, but optional. You don't have to add us
 necessary for your use case. But if you do, each user in the `config.yaml` **must** have a
 password and **can** have a subdirectory.
 
-The password must be in form of a BCrypt hash. You can generate one calling the shipped cli
-tool `davecli passwd`.
+The password must be in form of a BCrypt hash or `sha256:<hash>`. You can generate one calling the shipped cli
+tool `davecli passwd [--sha256]`.
 
 If a subdirectory is configured for a user, the user is jailed within it and can't see anything
 that exists outside of this directory. If no subdirectory is configured for an user, the user

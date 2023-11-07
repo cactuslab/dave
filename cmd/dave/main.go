@@ -4,7 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/micromata/dave/app"
+	"github.com/classix/dave/app"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/webdav"
 	syslog "log"

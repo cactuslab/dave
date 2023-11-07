@@ -2,16 +2,17 @@ package subcmd
 
 import (
 	"fmt"
-	"github.com/micromata/dave/app"
+	"github.com/classix/dave/app"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
 	"os"
 	"syscall"
 )
 
+var sha256Flag bool
 var passwdCmd = &cobra.Command{
 	Use:   "passwd",
-	Short: "Generates a BCrypt hash of a given input string",
+	Short: "Generates a BCrypt hash of a given input string (add --sha256 option to generate the password using sha256)",
 	Run: func(cmd *cobra.Command, args []string) {
 		pw1 := readPassword()
 		pw2 := readPassword()
@@ -24,7 +25,12 @@ var passwdCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		fmt.Printf("Hashed Password: %s\n", app.GenHash(pw1))
+		if sha256Flag {
+			fmt.Printf("Hashed Password: %s\n", app.GenHashSHA256(pw1))
+		} else {
+			// fallback to bcrypt hash
+			fmt.Printf("Hashed Password: %s\n", app.GenHash(pw1))
+		}
 	},
 }
 
@@ -41,5 +47,6 @@ func readPassword() []byte {
 }
 
 func init() {
+	passwdCmd.Flags().BoolVarP(&sha256Flag, "sha256", "", false, "generate sha256 password hash")
 	RootCmd.AddCommand(passwdCmd)
 }

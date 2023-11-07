@@ -1,4 +1,4 @@
-module github.com/micromata/dave
+module github.com/classix/dave
 
 go 1.17
 

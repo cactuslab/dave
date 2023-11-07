@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -39,6 +40,24 @@ func NewBasicAuthWebdavHandler(a *App) http.Handler {
 	})
 }
 
+// Accepts a sha256 hash in hex from and will check whether the given password hashes to the same hash
+func checkSHA256(sha256HexHash string, password string) error {
+	if strings.ToLower(sha256HexHash) != GenHashSHA256([]byte(password)) {
+		return errors.New("Hash doesn't match")
+	}
+
+	return nil
+}
+
+func checkPassword(correctPassword string, password string) error {
+	if strings.HasPrefix(correctPassword, "sha256:") {
+		return checkSHA256(correctPassword, password)
+	} else {
+		// fallback to bcrypt
+		return bcrypt.CompareHashAndPassword([]byte(correctPassword), []byte(password))
+	}
+}
+
 func authenticate(config *Config, username, password string) (*AuthInfo, error) {
 	if !config.AuthenticationNeeded() {
 		return &AuthInfo{Username: "", Authenticated: false}, nil
@@ -53,7 +72,7 @@ func authenticate(config *Config, username, password string) (*AuthInfo, error) 
 		return &AuthInfo{Username: username, Authenticated: false}, errors.New("user not found")
 	}
 
-	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	err := checkPassword(user.Password, password)
 	if err != nil {
 		return &AuthInfo{Username: username, Authenticated: false}, errors.New("Password doesn't match")
 	}
@@ -146,4 +165,10 @@ func GenHash(password []byte) string {
 	}
 
 	return string(pw)
+}
+
+func GenHashSHA256(password []byte) string {
+	hash := sha256.New()
+	hash.Write(password)
+	return fmt.Sprintf("sha256:%x", hash.Sum(nil))
 }

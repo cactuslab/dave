@@ -1,6 +1,6 @@
 package main
 
-import "github.com/micromata/dave/cmd/davecli/subcmd"
+import "github.com/classix/dave/cmd/davecli/subcmd"
 
 func main() {
 	subcmd.Execute()

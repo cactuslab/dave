@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"runtime"
 
 	"github.com/magefile/mage/mg"
 	"path/filepath"
@@ -40,7 +41,7 @@ func Build() error {
 
 	fmt.Println("Building...")
 
-	buildSpecific(target{})
+	buildSpecific(target{runtime.GOOS, runtime.GOARCH})
 
 	fmt.Printf("Compiled files moved to folder: %s\n", DIST)
 
