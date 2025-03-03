@@ -54,10 +54,11 @@ func BuildReleases() error {
 
 	targets := []target{
 		{"windows", "amd64"},
-		{"windows", "386"},
+		{"windows", "arm64"},
 		{"darwin", "amd64"},
+		{"darwin", "arm64"},
 		{"linux", "amd64"},
-		{"linux", "386"},
+		{"linux", "arm64"},
 	}
 
 	for _, t := range targets {
