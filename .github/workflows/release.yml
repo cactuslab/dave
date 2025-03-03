@@ -1,0 +1,82 @@
+name: Build and Release Dave
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - VERSION
+      - .github/workflows/release.yml
+
+jobs:
+  build:
+    name: Build Go Project
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+      - name: Install Mage
+        run: |
+          go install github.com/magefile/mage@latest
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+      - name: Build
+        run: |
+          go mod tidy
+          mage buildreleases
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries
+          path: dist/
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Read version from VERSION file
+        id: version
+        run: echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
+
+      - name: Check if release already exists
+        run: |
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ env.VERSION }})
+
+          if [ "$RESPONSE" == "200" ]; then
+            echo "⚠️ Release ${{ env.VERSION }} already exists. Exiting..."
+            exit 1
+          else
+            echo "✅ No existing release found. Proceeding..."
+          fi
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: binaries
+          path: dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.VERSION }}
+          name: Release ${{ env.VERSION }}
+          files: dist/*
+          body: "Automated release for version ${{ env.VERSION }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
